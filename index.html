@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>CASEDROP — симулятор кейсов CS2</title>
+<style>
+:root{color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+--bg:#0d1117;--panel:#161c26;--line:#263040;--text:#e8edf5;--mut:#8a97ab;--green:#3ddc84;--milspec:#4b69ff;--restricted:#8847ff;--classified:#d32ce6;--covert:#eb4b4b;--gold:#ffd700}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:radial-gradient(1200px 600px at 50% -200px,#1b2a3f,var(--bg));color:var(--text);font-family:"Rajdhani","Segoe UI",system-ui,sans-serif;font-size:17px;min-height:100%}
+button{font:inherit;cursor:pointer;border:0;color:inherit}
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;display:flex;align-items:center;gap:14px;padding:10px 18px;background:#0d1117ee;border-bottom:1px solid var(--line);backdrop-filter:blur(8px)}
+.logo{font-weight:700;font-size:24px;letter-spacing:.5px}.logo b{color:var(--green)}
+nav{display:flex;gap:6px;margin-left:12px}
+nav button{background:none;padding:8px 14px;border-radius:8px;color:var(--mut);font-weight:600}
+nav button.on{background:var(--panel);color:var(--text)}
+.bal{margin-left:auto;display:flex;align-items:center;gap:8px;background:var(--panel);padding:5px 6px 5px 12px;border-radius:10px;border:1px solid var(--line);font-weight:700;font-size:19px;color:var(--green)}
+.bal button{background:var(--green);color:#06210f;font-weight:700;padding:5px 10px;border-radius:7px}
+main{max-width:1180px;margin:0 auto;padding:22px 16px 60px}
+h2{margin:0 0 4px;font-size:28px}.sub{color:var(--mut);margin:0 0 18px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px}
+.case{background:linear-gradient(#182131,#121823);border:1px solid var(--line);border-radius:14px;padding:12px;text-align:center;transition:transform .15s,border-color .15s}
+.case:hover{transform:translateY(-4px);border-color:var(--c)}
+.case svg{width:100%;height:150px}
+.case .nm{font-weight:700;font-size:19px;margin:4px 0}
+.price{display:inline-flex;align-items:center;gap:6px;background:#0d1117;border-radius:8px;padding:5px 12px;font-weight:700;color:var(--green)}
+.skin{position:relative;background:linear-gradient(#1a2332,#111823);border-radius:10px;border-bottom:4px solid var(--rc);padding:8px 6px;text-align:center;overflow:hidden}
+.skin:before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 50% 40%,color-mix(in srgb,var(--rc) 30%,transparent),transparent 70%)}
+.skin svg,.skin img{position:relative;width:100%;height:56px;object-fit:contain}.skin img{filter:drop-shadow(0 4px 6px #0009)}
+.skin .w{position:relative;font-size:12px;color:var(--mut);line-height:1.1}
+.skin .n{position:relative;font-size:14px;font-weight:700;line-height:1.1}
+.skin .p{position:relative;font-size:13px;color:var(--green);font-weight:700}
+.inv{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.inv .skin{padding-bottom:10px}
+.inv button.sell{position:relative;margin-top:6px;background:#0d1117;padding:4px 10px;border-radius:6px;color:var(--green);font-weight:700;font-size:13px}
+.bar{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:16px}
+.btn{background:var(--green);color:#06210f;font-weight:700;padding:11px 22px;border-radius:10px;font-size:18px}
+.btn.ghost{background:var(--panel);color:var(--text);border:1px solid var(--line)}
+.btn:disabled{opacity:.4;cursor:default}
+.modal{position:fixed;inset:0;z-index:20;background:#05080dee;overflow:auto;display:none}
+.modal.on{display:block}
+.mw{max-width:1100px;margin:0 auto;padding:20px 14px 40px;text-align:center}
+.close{position:absolute;right:16px;top:calc(12px + env(safe-area-inset-top,0px));background:var(--panel);width:40px;height:40px;border-radius:50%;font-size:20px}
+.roll{position:relative;height:178px;margin:18px 0;background:#0a0f16;border-top:1px solid var(--line);border-bottom:1px solid var(--line);overflow:hidden}
+.roll:before,.roll:after{content:"";position:absolute;top:0;bottom:0;width:90px;z-index:2;pointer-events:none}
+.roll:before{left:0;background:linear-gradient(90deg,#0a0f16,transparent)}.roll:after{right:0;background:linear-gradient(-90deg,#0a0f16,transparent)}
+.mark{position:absolute;left:50%;top:0;bottom:0;width:3px;margin-left:-1.5px;background:#ffd24a;z-index:3;box-shadow:0 0 10px #ffd24a}
+.mark:before{content:"";position:absolute;top:0;left:-8px;border:9px solid transparent;border-top:12px solid #ffd24a;border-bottom:0}
+.strip{display:flex;position:absolute;left:0;top:14px;will-change:transform}
+.strip .skin{flex:0 0 150px;margin-right:6px;height:150px;display:flex;flex-direction:column;justify-content:center}
+.strip .skin svg,.strip .skin img{height:62px}
+.cnt{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:10px}
+.cnt .skin{width:132px}
+.win{display:none;margin:10px auto;max-width:340px;animation:pop .35s}
+.win .skin{padding:16px 10px}.win .skin svg,.win .skin img{height:110px}.win .n{font-size:20px}
+@keyframes pop{from{transform:scale(.6);opacity:0}}
+.empty{color:var(--mut);padding:40px 0;text-align:center}
+.odds{font-size:14px;color:var(--mut);margin-top:6px}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--panel);border:1px solid var(--green);padding:10px 18px;border-radius:10px;z-index:30;display:none}
+.up{display:grid;grid-template-columns:1fr 220px 1fr;gap:16px;align-items:start}.up h3{margin:0 0 8px;display:flex;gap:8px;align-items:center}
+.sc{max-height:520px;overflow:auto;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));padding:4px}.sw{cursor:pointer;border-radius:12px;outline:2px solid transparent}.sw.sel{outline-color:var(--green)}
+.mid{text-align:center;position:sticky;top:80px}.gauge{position:relative;width:200px;height:200px;margin:0 auto 12px}.gauge svg{width:100%;height:100%}.pc{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:700;color:var(--green)}
+@media(max-width:820px){.up{grid-template-columns:1fr}.mid{position:static;order:-1}}
+@media(max-width:600px){nav button{padding:8px 9px}.logo{font-size:19px}header{gap:6px;padding:8px 10px}}
+@media(prefers-reduced-motion:reduce){.case,.win{transition:none;animation:none}}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">CASE<b>DROP</b></div>
+  <nav><button id="tc" class="on">Кейсы</button><button id="ti">Инвентарь <span id="ic">0</span></button><button id="tu">Апгрейд</button></nav>
+  <div class="bal"><span id="bal"></span><button id="topup" title="Бесплатно, виртуальные деньги">+ $50</button></div>
+</header>
+<main>
+  <section id="vc"><h2>Кейсы</h2><p class="sub">Симулятор на виртуальные деньги — реальных выплат нет.</p><div class="grid" id="cases"></div></section>
+  <section id="vi" style="display:none"><h2>Инвентарь</h2><div class="bar"><span class="price" id="invval"></span><button class="btn ghost" id="sellall">Продать всё</button></div><div class="inv" id="inv"></div></section>
+  <section id="vu" style="display:none"><h2>Апгрейд</h2><p class="sub">Выбери свои скины, затем скин, который хочешь получить. Чем он дороже, тем ниже шанс. Если не повезло, поставленные скины сгорают.</p>
+  <div class="up"><div><h3>Твои скины <span class="price" id="sv"></span></h3><div class="inv sc" id="usrc"></div></div>
+  <div class="mid"><div class="gauge"><svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="50" fill="none" stroke="#263040" stroke-width="10"/><circle id="arc" cx="60" cy="60" r="50" fill="none" stroke="#3ddc84" stroke-width="10" stroke-dasharray="0 315" transform="rotate(-90 60 60)"/><g id="ndl" style="transform-origin:60px 60px"><path d="M60 2l-6 15h12z" fill="#ffd24a"/></g></svg><div class="pc" id="pc">0%</div></div><button class="btn" id="upbtn" disabled>Апгрейд</button><div id="upres" class="odds"></div></div>
+  <div><h3>Хочу получить</h3><div class="inv sc" id="utgt"></div></div></div></section>
+</main>
+<div class="modal" id="modal"><button class="close" id="x">✕</button>
+  <div class="mw"><h2 id="mt"></h2><div class="odds">Синий 79.9% · Фиолетовый 16% · Розовый 3.2% · Красный 0.64% · Золото 0.26%</div>
+    <div class="roll"><div class="mark"></div><div class="strip" id="strip"></div></div>
+    <div class="win" id="win"></div>
+    <div class="bar" style="justify-content:center"><button class="btn" id="open"></button><button class="btn ghost" id="demo">Демо (бесплатно)</button><button class="btn ghost" id="sellwin" style="display:none">Продать</button></div>
+    <div class="cnt" id="cnt"></div></div></div>
+<div class="toast" id="toast"></div>
+<script>
+const $=id=>document.getElementById(id);
+const R={milspec:{c:'#4b69ff',w:79.92,m:.3},restricted:{c:'#8847ff',w:15.98,m:.9},classified:{c:'#d32ce6',w:3.2,m:3},covert:{c:'#eb4b4b',w:.64,m:10},gold:{c:'#ffd700',w:.26,m:40}};
+const SH={rifle:'M4 17h46l5-4h20l4 4h13v6H66l-4 9h-9l-2-9H28l-6 10h-8l4-10H4z',pistol:'M16 8h60v10H54l-4 6v10H38l2-16H16z',sniper:'M2 18h30l4-5h12l3 5h30l8-3v9H44l-6 8h-8l3-8H2z',smg:'M6 14h60l6 4h14v8H66l-4 8h-8l-1-8H34l-4 8h-8l3-8H6z',knife:'M6 24 52 8q16 2 18 12L22 28zM66 14l22 6-2 6-22-4z'};
+const C=[
+{id:'s',n:'Starter Crate',p:.99,a:'#3ddc84',b:'#0f6b3a',e:'M50 28l8 16 18 2-13 12 4 18-17-9-17 9 4-18L24 46l18-2z',it:[['MP9','Rose Iron',0,'smg'],['Nova','Predator',0,'rifle'],['P250','Sand Dune',0,'pistol'],['SG 553','Army Sheen',0,'rifle'],['AK-47','Slate',1,'rifle'],['M4A4','Evil Daimyo',1,'rifle'],['USP-S','Torque',1,'pistol'],['AWP','Atheris',2,'sniper'],['AK-47','Redline',3,'rifle'],['Karambit','Fade',4,'knife']]},
+{id:'d',n:'Dragon Fury',p:2.49,a:'#ff7a2f',b:'#7a1f0a',e:'M50 24c10 14 22 20 14 36-3 6-9 9-14 9s-11-3-14-9c-6-10 2-16 6-24 2 6 6 8 8 6-2-8 0-14 0-18z',it:[['Glock-18','Fade',0,'pistol'],['MAC-10','Heat',0,'smg'],['Galil AR','Cerberus',0,'rifle'],['Tec-9','Ruby',0,'pistol'],['M4A1-S','Hyper Beast',1,'rifle'],['AK-47','Fire Serpent',1,'rifle'],['Desert Eagle','Blaze',1,'pistol'],['AWP','Dragon Lore',2,'sniper'],['M4A4','Howl',3,'rifle'],['Butterfly','Doppler',4,'knife']]},
+{id:'n',n:'Neon Rider',p:4.99,a:'#25e6ff',b:'#7b1fa8',e:'M56 20 34 50h14l-6 28 24-34H48z',it:[['P90','Asiimov',0,'smg'],['FAMAS','Neon Rider',0,'rifle'],['Five-SeveN','Hyper Beast',0,'pistol'],['UMP-45','Primal Saber',0,'smg'],['AK-47','Neon Revolution',1,'rifle'],['AWP','Neo-Noir',1,'sniper'],['USP-S','Neo-Noir',1,'pistol'],['M4A1-S','Printstream',2,'rifle'],['Desert Eagle','Printstream',3,'pistol'],['M9 Bayonet','Gamma Doppler',4,'knife']]},
+{id:'a',n:'Arctic Strike',p:7.99,a:'#7fd4ff',b:'#1a4f8a',e:'M50 20v60M24 35l52 30M24 65l52-30',it:[['MP7','Whiteout',0,'smg'],['Nova','Frost Bite',0,'rifle'],['P2000','Ice Cap',0,'pistol'],['SSG 08','Blue Spruce',0,'sniper'],['M4A4','Buzz Kill',1,'rifle'],['AWP','Hyper Beast',1,'sniper'],['Glock-18','Water Elemental',1,'pistol'],['AK-47','Vulcan',2,'rifle'],['AWP','Gungnir',3,'sniper'],['Huntsman','Blue Steel',4,'knife']]},
+{id:'h',n:'Shadow Ops',p:14.99,a:'#b9c2d0',b:'#232a36',e:'M50 22c-14 0-22 9-22 21 0 7 3 11 8 14v9h28v-9c5-3 8-7 8-14 0-12-8-21-22-21zM41 44a5 5 0 1 0 0 .1zM59 44a5 5 0 1 0 0 .1z',it:[['CZ75-Auto','Xiangliu',0,'pistol'],['MP5-SD','Phosphor',0,'smg'],['Negev','Mjolnir',0,'rifle'],['SCAR-20','Cyrex',0,'sniper'],['AK-47','Asiimov',1,'rifle'],['M4A1-S','Cyrex',1,'rifle'],['AWP','Redline',1,'sniper'],['AWP','Medusa',2,'sniper'],['M4A4','Poseidon',3,'rifle'],['Skeleton Knife','Slaughter',4,'knife']]},
+{id:'g',n:'Gold Rush',p:24.99,a:'#ffd24a',b:'#6a2a9a',e:'M50 20 68 42 50 80 32 42zM32 42h36',it:[['AK-47','Bloodsport',0,'rifle'],['M4A4','Royal Paladin',0,'rifle'],['AWP','Containment',0,'sniper'],['Glock-18','Gold Arabesque',0,'pistol'],['AK-47','Wild Lotus',1,'rifle'],['AWP','Fade',1,'sniper'],['M4A1-S','Knight',1,'rifle'],['Desert Eagle','Ocean Drive',2,'pistol'],['AK-47','Gold Arabesque',3,'rifle'],['Sport Gloves','Pandora',4,'knife']]}
+];
+const RK=['milspec','restricted','classified','covert','gold'];
+const bill=(s=20)=>`<svg width="${s*1.7}" height="${s}" viewBox="0 0 34 20" style="vertical-align:middle"><rect x="1" y="1" width="32" height="18" rx="3" fill="#2f9e56" stroke="#a8f0c0"/><rect x="4" y="4" width="26" height="12" rx="2" fill="none" stroke="#7ad79b" stroke-dasharray="2 1.5"/><circle cx="17" cy="10" r="5" fill="#3ddc84" stroke="#0f5a2d"/><text x="17" y="13.4" font-size="8.5" font-weight="700" text-anchor="middle" fill="#0b4222">$</text></svg>`;
+const money=v=>'$'+v.toFixed(2);
+let st;try{st=JSON.parse(localStorage.getItem('cd1'))}catch(e){}
+st=st||{bal:100,inv:[]};
+const save=()=>{try{localStorage.setItem('cd1',JSON.stringify(st))}catch(e){}};
+function crate(c){const u=c.id;return `<svg viewBox="0 0 100 100"><defs><linearGradient id="g${u}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${c.a}"/><stop offset="1" stop-color="${c.b}"/></linearGradient><radialGradient id="r${u}"><stop offset="0" stop-color="${c.a}" stop-opacity=".55"/><stop offset="1" stop-color="${c.a}" stop-opacity="0"/></radialGradient></defs>
+<circle cx="50" cy="52" r="48" fill="url(#r${u})"/><ellipse cx="50" cy="90" rx="34" ry="5" fill="#000" opacity=".4"/>
+<path d="M14 36 50 22l36 14v40L50 90 14 76z" fill="url(#g${u})" stroke="#000" stroke-opacity=".5"/>
+<path d="M14 36 50 50l36-14L50 22z" fill="${c.a}" opacity=".9"/><path d="M50 50v40" stroke="#000" stroke-opacity=".4"/>
+<path d="M14 36 50 50v40L14 76z" fill="#000" opacity=".22"/>
+<path d="M22 46h8M22 54h8M22 62h8" stroke="#fff" stroke-opacity=".5" stroke-width="2"/>
+<g transform="translate(50 62) scale(.34) translate(-50 -50)"><path d="${c.e}" fill="#fff" stroke="${c.b}" stroke-width="4" stroke-linejoin="round"/></g>
+<path d="M50 50 86 36" stroke="#fff" stroke-opacity=".5"/><circle cx="50" cy="50" r="3" fill="#fff"/></svg>`}
+const art=(t,h,rc)=>`<svg viewBox="0 0 100 40"><defs><linearGradient id="k${h}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="hsl(${h} 75% 62%)"/><stop offset="1" stop-color="hsl(${(h+50)%360} 70% 36%)"/></linearGradient></defs><path d="${SH[t]}" fill="url(#k${h})" stroke="#000" stroke-opacity=".6" stroke-width="1.2" stroke-linejoin="round"/></svg>`;
+const hue=s=>{let h=0;for(const ch of s)h=(h*31+ch.charCodeAt(0))%360;return h};
+function skinEl(it,extra=''){const rk=RK[it.r];const col=R[rk].c;const knife=it.r==4;const nm=(knife?'★ ':'')+it.w;
+return `<div class="skin" style="--rc:${col}">${pic(it,col)}<div class="w">${nm}</div><div class="n">${it.n}</div>${it.price!=null?`<div class="p">${money(it.price)}</div>`:''}${extra}</div>`}
+const mk=(c,x)=>({w:x[0],n:x[1],r:x[2],t:x[3],cid:c.id});
+function pick(c){let r=Math.random()*100,k=0;for(let i=0;i<5;i++){r-=R[RK[i]].w;if(r<=0){k=i;break}k=i}
+const pool=c.it.filter(x=>x[2]==k);const x=pool[Math.floor(Math.random()*pool.length)]||c.it[0];return mk(c,x)}
+const price=(c,it)=>+(c.p*R[RK[it.r]].m*(.7+Math.random()*.7)).toFixed(2);
+function render(){$('bal').innerHTML=bill(18)+' '+money(st.bal);$('ic').textContent=st.inv.length;
+$('cases').innerHTML=C.map((c,i)=>`<div class="case" style="--c:${c.a}"><button style="all:unset;cursor:pointer;display:block;width:100%" data-i="${i}">${crate(c)}<div class="nm">${c.n}</div><span class="price">${bill(14)} ${money(c.p)}</span></button></div>`).join('');
+$('cases').querySelectorAll('button').forEach(b=>b.onclick=()=>openModal(+b.dataset.i));
+$('inv').innerHTML=st.inv.length?st.inv.map((it,i)=>skinEl(it,`<button class="sell" data-s="${i}">Продать</button>`)).join(''):'';
+if(!st.inv.length)$('inv').innerHTML='<div class="empty" style="grid-column:1/-1">Пока пусто. Открой кейс — выпавшие скины появятся здесь.</div>';
+$('inv').querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>{const it=st.inv.splice(+b.dataset.s,1)[0];st.bal+=it.price;save();render();toast('Продано: '+it.w+' | '+it.n+' за '+money(it.price))});
+$('invval').innerHTML=bill(14)+' Стоимость: '+money(st.inv.reduce((s,i)=>s+i.price,0));rUp()}
+function toast(t){const e=$('toast');e.textContent=t;e.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>e.style.display='none',2200)}
+$('tc').onclick=()=>tab(0);$('ti').onclick=()=>tab(1);$('tu').onclick=()=>tab(2);
+function tab(i){['vc','vi','vu'].forEach((v,k)=>$(v).style.display=k==i?'':'none');['tc','ti','tu'].forEach((v,k)=>$(v).classList.toggle('on',k==i))}
+$('topup').onclick=()=>{st.bal+=50;save();render();toast('+$50 виртуальных денег')};
+$('sellall').onclick=()=>{if(!st.inv.length)return;const s=st.inv.reduce((a,i)=>a+i.price,0);st.bal+=s;st.inv=[];save();render();toast('Продано всё за '+money(s))};
+/* Рулетка */
+let cur=null,busy=false,last=null,raf;
+const CW=156;
+function openModal(i){cur=C[i];$('mt').textContent=cur.n;$('open').innerHTML='Открыть за '+money(cur.p);$('win').style.display='none';$('sellwin').style.display='none';
+const s=$('strip');s.style.transition='none';s.style.transform='translateX(0)';fill(s,[...Array(30)].map(()=>pick(cur)));
+$('cnt').innerHTML=cur.it.map(x=>skinEl(mk(cur,x))).join('');$('modal').classList.add('on');document.body.style.overflow='hidden'}
+function fill(s,arr){s.innerHTML=arr.map(a=>skinEl(a)).join('')}
+$('x').onclick=()=>{if(busy)return;$('modal').classList.remove('on');document.body.style.overflow=''};
+let ac;function tick(){try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();const o=ac.createOscillator(),g=ac.createGain();o.type='square';o.frequency.value=900;g.gain.value=.03;g.gain.exponentialRampToValueAtTime(.0001,ac.currentTime+.05);o.connect(g);g.connect(ac.destination);o.start();o.stop(ac.currentTime+.05)}catch(e){}}
+function spin(free){if(busy)return;if(!free&&st.bal<cur.p){toast('Недостаточно денег — нажми «+ $50»');return}
+busy=true;$('open').disabled=$('demo').disabled=true;$('win').style.display='none';$('sellwin').style.display='none';
+if(!free){st.bal-=cur.p;save();render()}
+const win=pick(cur),WI=52,N=62,arr=[];for(let i=0;i<N;i++)arr.push(i==WI?win:pick(cur));
+const s=$('strip');s.style.transition='none';s.style.transform='translateX(0)';fill(s,arr);void s.offsetWidth;
+const center=s.parentElement.clientWidth/2;const jit=(Math.random()*.8-.4)*(CW-8);
+const target=WI*CW+CW/2-3+jit-center;
+s.style.transition='transform 7s cubic-bezier(.08,.62,.08,1)';s.style.transform=`translateX(${-target}px)`;
+let prev=-1;cancelAnimationFrame(raf);
+const loop=()=>{const m=new DOMMatrix(getComputedStyle(s).transform).m41;const idx=Math.floor((-m+center)/CW);if(idx!==prev){if(prev>=0)tick();prev=idx}raf=requestAnimationFrame(loop)};loop();
+setTimeout(()=>{cancelAnimationFrame(raf);busy=false;$('open').disabled=$('demo').disabled=false;
+win.price=price(cur,win);$('win').innerHTML=skinEl(win);$('win').style.display='block';
+if(!free){st.inv.push({...win});save();render();last=win;$('sellwin').style.display='';$('sellwin').textContent='Продать за '+money(win.price)}
+else{toast('Демо — скин не сохранён')}},7200)}
+$('open').onclick=()=>spin(false);$('demo').onclick=()=>spin(true);
+$('sellwin').onclick=()=>{const i=st.inv.lastIndexOf(st.inv.find(x=>x===last)||st.inv[st.inv.length-1]);if(i<0)return;const it=st.inv.splice(i,1)[0];st.bal+=it.price;save();render();$('sellwin').style.display='none';toast('Продано за '+money(it.price))};
+/* Апгрейд */
+const ALL=C.flatMap(c=>c.it.map(x=>({...mk(c,x),price:+(c.p*R[RK[x[2]]].m).toFixed(2)})));
+let us=new Set(),ut=null,ub=false;
+const srcVal=()=>[...us].reduce((s,i)=>s+(st.inv[i]?st.inv[i].price:0),0);
+const chance=()=>ut?Math.min(90,srcVal()/ut.price*92):0;
+function rUp(){if(ub)return;us=new Set([...us].filter(i=>i<st.inv.length));const v=srcVal();
+$('sv').innerHTML=bill(12)+' '+money(v);
+$('usrc').innerHTML=st.inv.length?st.inv.map((it,i)=>`<div class="sw ${us.has(i)?'sel':''}" data-u="${i}">${skinEl(it)}</div>`).join(''):'<div class="empty" style="grid-column:1/-1">Нет скинов. Открой кейс.</div>';
+const ts=v>0?ALL.filter(t=>t.price>v*1.1&&t.price<=v*30).sort((a,b)=>a.price-b.price).slice(0,30):[];
+if(ut&&!ts.includes(ut))ut=null;
+$('utgt').innerHTML=ts.length?ts.map((t,i)=>`<div class="sw ${t===ut?'sel':''}" data-t="${i}">${skinEl(t)}</div>`).join(''):'<div class="empty" style="grid-column:1/-1">Выбери скины слева.</div>';
+$('usrc').querySelectorAll('[data-u]').forEach(e=>e.onclick=()=>{const i=+e.dataset.u;us.has(i)?us.delete(i):us.add(i);ut=null;rUp()});
+$('utgt').querySelectorAll('[data-t]').forEach(e=>e.onclick=()=>{ut=ts[+e.dataset.t];rUp()});
+const ch=chance();$('arc').setAttribute('stroke-dasharray',(ch*3.1416)+' 315');$('pc').textContent=ch.toFixed(1)+'%';$('upbtn').disabled=!(us.size&&ut)}
+$('upbtn').onclick=()=>{if(ub||!ut||!us.size)return;ub=true;$('upbtn').disabled=true;$('upres').textContent='';const ch=chance(),r=Math.random()*100,t=ut;
+const n=$('ndl');n.style.transition='none';n.style.transform='rotate(0deg)';void n.getBoundingClientRect();n.style.transition='transform 5s cubic-bezier(.1,.6,.1,1)';n.style.transform=`rotate(${360*6+r*3.6}deg)`;
+setInterval.t=setTimeout(()=>{[...us].sort((a,b)=>b-a).forEach(i=>st.inv.splice(i,1));us.clear();ut=null;ub=false;
+const ok=r<ch;if(ok)st.inv.push({...t});save();render();$('upres').textContent=ok?'Успех! Получен '+t.w+' | '+t.n:'Не повезло: поставленные скины сгорели.';toast(ok?'Апгрейд удался!':'Апгрейд не удался')},5200)};
+/* Картинки скинов из открытой базы CS2 (CSGO-API на GitHub Pages) */
+const IMG={},NM=[],cache={};
+function imgUrl(it){const k=it.w+' | '+it.n;if(k in cache)return cache[k];
+const vs=[k,'★ '+k,'★ '+it.w+' Knife | '+it.n,'★ '+it.w+' Gloves | '+it.n];let u=null;
+for(const v of vs)if(IMG[v]){u=IMG[v];break}
+if(!u)for(const v of vs){const m=NM.find(n=>n.startsWith(v));if(m){u=IMG[m];break}}
+return cache[k]=u}
+function pic(it,col){const u=imgUrl(it);return u?`<img src="${u}" alt="" referrerpolicy="no-referrer" data-t="${it.t}" data-h="${hue(it.w+it.n)}" onerror="fb(this)">`:art(it.t,hue(it.w+it.n),col)}
+function fb(e){e.outerHTML=art(e.dataset.t,+e.dataset.h,'#fff')}
+fetch('https://bymykel.github.io/CSGO-API/api/en/skins.json').then(r=>r.json()).then(a=>{
+a.forEach(x=>{if(x.name&&x.image&&!IMG[x.name]){IMG[x.name]=x.image;NM.push(x.name)}});
+for(const k in cache)delete cache[k];render();
+C.forEach(c=>c.it.forEach(x=>{const u=imgUrl(mk(c,x));if(u)new Image().src=u}))}).catch(()=>{});
+render();
+</script>
+</body>
+</html>
